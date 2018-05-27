@@ -10,6 +10,7 @@ import requests
 LOG_LEVEL = logging.INFO
 beacons = {}
 beacon_value = 0
+power_limiter = -75
 scanner_id = "laptop"
 #LOG_LEVEL = logging.DEBUG
 LOG_FILE = "/home/ss/wifiloc"
@@ -20,7 +21,7 @@ logging.basicConfig(filename=LOG_FILE, format=LOG_FORMAT, level=LOG_LEVEL)
 from threading import Timer
 
 def hello(name):
-	print "Hello %s!" % name
+	print "Sending to server : %s!" % name
 	url = "http://client.mdphotoapp.com/estetik/raspi_proloc.php?scanner=%s" % scanner_id
 	headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 	r = requests.post(url, data=json.dumps(beacons), headers=headers)
@@ -72,7 +73,7 @@ try:
 	devices = scanner.scan(10)
 
 	for dev in devices:
-		if dev.addr.find("ff:ff") == 0:
+		if dev.addr.find("ff:ff") == 0 and dev.rssi > power_limiter:
 			logging.info("%s RSSI=%d dB" % (dev.addr, dev.rssi))
 			if beacons.has_key(dev.addr):
 				beacon_value = int((beacons[dev.addr]+dev.rssi)/2)
